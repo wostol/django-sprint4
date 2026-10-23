@@ -6,11 +6,6 @@ User = get_user_model()
 
 
 class PublishedModel(models.Model):
-    """
-    Абстрактная модель для полей, которые повторяются
-    в Category, Location и Post.
-    """
-
     is_published = models.BooleanField(
         default=True,
         verbose_name='Опубликовано',
@@ -28,29 +23,20 @@ class PublishedModel(models.Model):
 class CategoryManager(models.Manager):
     def first(self):
         category = super().first()
-
         if category is None:
-            # Если категорий в базе вообще нет, возвращаем несозданный объект,
-            # чтобы тесты могли построить адрес страницы категории.
             category = self.model(
                 title='Без категории',
                 slug='no-category',
                 is_published=True,
             )
-
         return category
 
 
 class Category(PublishedModel):
     objects = CategoryManager()
 
-    title = models.CharField(
-        'Заголовок',
-        max_length=256,
-    )
-    description = models.TextField(
-        'Описание',
-    )
+    title = models.CharField('Заголовок', max_length=256)
+    description = models.TextField('Описание')
     slug = models.SlugField(
         'Идентификатор',
         unique=True,
@@ -70,10 +56,7 @@ class Category(PublishedModel):
 
 
 class Location(PublishedModel):
-    name = models.CharField(
-        'Название места',
-        max_length=256,
-    )
+    name = models.CharField('Название места', max_length=256)
 
     class Meta:
         verbose_name = 'местоположение'
@@ -84,16 +67,8 @@ class Location(PublishedModel):
 
 
 class Post(PublishedModel):
-    title = models.CharField(
-        'Заголовок',
-        max_length=256,
-    )
-    text = models.TextField(
-        'Текст',
-    )
-
-    # Важно: добавляем default, чтобы можно было создавать посты
-    # и обычные, и отложенные.
+    title = models.CharField('Заголовок', max_length=256)
+    text = models.TextField('Текст')
     pub_date = models.DateTimeField(
         'Дата и время публикации',
         default=timezone.now,
@@ -102,14 +77,12 @@ class Post(PublishedModel):
             'можно делать отложенные публикации.'
         ),
     )
-
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='posts',
         verbose_name='Автор публикации',
     )
-
     location = models.ForeignKey(
         Location,
         on_delete=models.SET_NULL,
@@ -118,9 +91,6 @@ class Post(PublishedModel):
         null=True,
         blank=True,
     )
-
-    # Если категория должна быть обязательной, можно вернуть blank=False.
-    # Но для более гибкой логики обычно ставят blank=True.
     category = models.ForeignKey(
         Category,
         on_delete=models.SET_NULL,
@@ -129,8 +99,6 @@ class Post(PublishedModel):
         null=True,
         blank=True,
     )
-
-    # Изображение к посту
     image = models.ImageField(
         'Изображение',
         upload_to='posts_images',
@@ -160,9 +128,7 @@ class Comment(models.Model):
         related_name='comments',
         verbose_name='Автор комментария',
     )
-    text = models.TextField(
-        'Текст комментария',
-    )
+    text = models.TextField('Текст комментария')
     created_at = models.DateTimeField(
         'Добавлено',
         auto_now_add=True,
